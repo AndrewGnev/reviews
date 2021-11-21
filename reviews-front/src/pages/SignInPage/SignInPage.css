@@ -1,0 +1,7 @@
+
+.SignInPage {
+    display: flex;
+    min-height: 100vh;
+    height: 100%;
+    align-items: center;
+}

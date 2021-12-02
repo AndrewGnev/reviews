@@ -2,6 +2,7 @@ package by.ilearning.reviewsback.users.impl.service;
 
 import by.ilearning.reviewsback.users.impl.entity.User;
 import by.ilearning.reviewsback.users.impl.repository.UserRepository;
+import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +15,6 @@ public class UserService {
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
-
-    /*public void addPossibleNewUser(OAuth2LoginAuthenticationToken authentication) {
-        User possibleNewUser = new User(
-                authentication.getPrincipal().getAttribute("id"),
-                authentication.getPrincipal().getAttribute("name"),
-                authentication.getClientRegistration().getRegistrationId()
-        );
-
-        if (userRepository.findBySnIdAndProvider(possibleNewUser.getSnId(), possibleNewUser.getProvider()) == null)
-            userRepository.save(possibleNewUser);
-    }*/
 
     public User addPossibleNewUser(String id, String username, String provider) {
 
@@ -43,6 +33,11 @@ public class UserService {
     }
 
     public User findById(Long id) {
-        return userRepository.findById(id);
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public User findByIdStrict(Long id) throws NotFoundException {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User with id " + id + " not found"));
     }
 }

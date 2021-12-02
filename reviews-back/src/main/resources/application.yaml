@@ -21,6 +21,15 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     generate-ddl: true
+    properties:
+      hibernate:
+        show-sql: true
+        format-sql: true
+        search:
+          default:
+            directory_provider: filesystem
+            indexBase: ./hibernate.search.index
+
 
 app:
   allowedCorsOrigin: http://localhost:3000

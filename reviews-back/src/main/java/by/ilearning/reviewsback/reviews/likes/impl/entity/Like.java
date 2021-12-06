@@ -21,6 +21,7 @@ public class Like {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "review_id")
     private Review review;
 
     @OneToOne

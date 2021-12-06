@@ -1,6 +1,7 @@
 package by.ilearning.reviewsback.reviews.mapper;
 
 import by.ilearning.reviewsback.reviews.api.dto.ReviewDto;
+import by.ilearning.reviewsback.reviews.api.dto.UploadingReviewDto;
 import by.ilearning.reviewsback.reviews.impl.entity.Review;
 import by.ilearning.reviewsback.reviews.likes.impl.entity.Like;
 import by.ilearning.reviewsback.reviews.tags.impl.entity.Tag;
@@ -11,7 +12,9 @@ import by.ilearning.reviewsback.users.mapper.UsersMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +27,11 @@ public interface ReviewsMapper {
     @Mapping(source = "content", target = "contentInMd")
     Review reviewDtoToReview(ReviewDto dto);
 
+    @Mapping(source = "tagsNames", target = "tags")
+    @Mapping(source = "content", target = "contentInMd")
+    @Mapping(source = "images", target = "imagesUrls")
+    Review uploadingReviewDtoToReview(UploadingReviewDto dto);
+
     @Mapping(source = "usersGrades", target = "usersGradesAvg")
     @Mapping(source = "likes", target ="likesCount")
     @Mapping(source = "tags", target = "tagsNames")
@@ -32,15 +40,19 @@ public interface ReviewsMapper {
     ReviewDto reviewToReviewDto(Review review);
 
     default Double usersGradesToUsersGradesAvg(Set<UsersGrade> grades) {
-        return grades.stream()
-                .mapToDouble(UsersGrade::getGrade)
-                .average().stream()
-                .boxed().findFirst()
-                .orElse(null);
+        return grades == null
+                ? null
+                : grades.stream()
+                    .mapToDouble(UsersGrade::getGrade)
+                    .average().stream()
+                    .boxed().findFirst()
+                    .orElse(null);
     }
 
     default Integer likesToLikesSum(Set<Like> likes) {
-        return likes.size();
+        return likes == null
+                ? 0
+                : likes.size();
     }
 
     default Set<Tag> tagsNamesToTags(Set<String> tagsNames) {
@@ -55,5 +67,9 @@ public interface ReviewsMapper {
 
     default UserDto userToUserDto(User user) {
         return UsersMapper.INSTANCE.userToUserDto(user);
+    }
+
+    default Set<String> imagesToImagesUrls(Set<MultipartFile> images) {
+        return new HashSet<>();
     }
 }

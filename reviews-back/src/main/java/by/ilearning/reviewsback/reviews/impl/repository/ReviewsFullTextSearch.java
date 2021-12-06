@@ -18,12 +18,12 @@ public class ReviewsFullTextSearch {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<Review> searchProductNameByKeywordQuery(String text) {
+    public List<Review> searchTextInReviewTittleAndContent(String text) {
 
         Query keywordQuery = getQueryBuilder()
                 .keyword()
                 .wildcard()
-                .onFields("tittle", "contentInMd", "contentInHtml")
+                .onFields("tittle", "plainTextContent")
                 .matching("*" + text.trim() + "*")
                 .createQuery();
 

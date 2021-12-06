@@ -20,7 +20,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany
+    @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE)
     private List<Review> reviews;
 
     private String snId;

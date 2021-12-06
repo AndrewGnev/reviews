@@ -14,11 +14,15 @@ spring:
           facebook:
             client-id: ${FACEBOOK_CLIENT_ID}
             client-secret: ${FACEBOOK_CLIENT_SECRET}
+            redirectUri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
   datasource:
-    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}/${DB_NAME:reviews_db}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+#    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}/${DB_NAME:reviews_db}
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
   jpa:
     generate-ddl: true
     properties:
@@ -33,7 +37,8 @@ spring:
 
 app:
   allowedCorsOrigin: http://localhost:3000
-  defaultRedirectUrl: http://localhost:3000/redirect
+#  defaultRedirectUrl: http://localhost:3000/redirect
+  defaultRedirectUrl: /redirect
   jwt:
     secret: ${JWT_SECRET}
-    lifetime: 1
+    lifetime: 12

@@ -22,7 +22,8 @@ public class UsersGrade {
 
     private int grade;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @JoinColumn(name = "review_id")
     private Review review;
 
     @OneToOne

@@ -1,18 +1,17 @@
 package by.ilearning.reviewsback.reviews.api.controller;
 
 import by.ilearning.reviewsback.reviews.api.dto.ReviewDto;
+import by.ilearning.reviewsback.reviews.api.dto.UploadingReviewDto;
 import by.ilearning.reviewsback.reviews.impl.entity.Review;
 import by.ilearning.reviewsback.reviews.impl.service.ReviewsService;
 import by.ilearning.reviewsback.reviews.mapper.ReviewsMapper;
 import by.ilearning.reviewsback.security.jwt.JwtAuthenticationPrincipal;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,9 +23,14 @@ public class ReviewsController {
 
     private final ReviewsService reviewsService;
 
-    @PostMapping
-    public long addReview(@RequestBody ReviewDto dto, @AuthenticationPrincipal JwtAuthenticationPrincipal principal) {
-        return reviewsService.addReview(dto, principal.getName());
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping()
+    public ReviewDto addReview(
+            @ModelAttribute UploadingReviewDto dto,
+            @AuthenticationPrincipal JwtAuthenticationPrincipal principal
+    ) throws NotFoundException, IOException {
+
+        return ReviewsMapper.INSTANCE.reviewToReviewDto(reviewsService.addReview(dto, principal.getName()));
     }
 
     @GetMapping
@@ -51,24 +55,36 @@ public class ReviewsController {
         return dto;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("{reviewId}")
-    public long updateReview(
-            @RequestBody ReviewDto reviewDto,
+    public ReviewDto updateReview(
+            @PathVariable("reviewId") Long reviewId,
+            @ModelAttribute UploadingReviewDto dto,
+            @AuthenticationPrincipal JwtAuthenticationPrincipal principal
+    ) throws NotFoundException, IOException {
+        return ReviewsMapper.INSTANCE.reviewToReviewDto(
+                reviewsService.updateReview(dto, reviewId, principal.getName())
+        );
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("{reviewId}")
+    public long deleteReview(
             @PathVariable("reviewId") Long reviewId,
             @AuthenticationPrincipal JwtAuthenticationPrincipal principal
     ) throws NotFoundException {
-        return reviewsService.updateReview(reviewDto, reviewId, principal.getName());
+        return reviewsService.deleteReview(reviewId, principal.getName());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("categories")
     public List<String> getCategories() {
         return reviewsService.getCategories();
     }
 
     @GetMapping("search")
-    public List<ReviewDto> searchReviews(@RequestBody String text) {
+    public List<ReviewDto> searchReviews(@RequestParam("text") String text) {
         return reviewsService.searchReview(text).stream().map(ReviewsMapper.INSTANCE::reviewToReviewDto)
                 .collect(Collectors.toList());
     }
-
 }

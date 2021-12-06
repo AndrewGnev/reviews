@@ -1,13 +1,13 @@
 package by.ilearning.reviewsback.reviews.impl.service;
 
-import by.ilearning.reviewsback.reviews.api.dto.ReviewDto;
+import by.ilearning.reviewsback.reviews.api.dto.UploadingReviewDto;
 import by.ilearning.reviewsback.reviews.impl.entity.Review;
 import by.ilearning.reviewsback.reviews.impl.repository.ReviewsFullTextSearch;
 import by.ilearning.reviewsback.reviews.impl.repository.ReviewsRepository;
 import by.ilearning.reviewsback.reviews.mapper.ReviewsMapper;
+import by.ilearning.reviewsback.reviews.photos.impl.service.PhotosService;
 import by.ilearning.reviewsback.reviews.tags.impl.service.TagsService;
 import by.ilearning.reviewsback.users.impl.service.UserService;
-import by.ilearning.reviewsback.users.mapper.UsersMapper;
 import javassist.NotFoundException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +16,14 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +37,7 @@ public class ReviewsService {
     private final ReviewsRepository reviewsRepository;
     private final UserService userService;
     private final TagsService tagsService;
+    private final PhotosService photosService;
     private final ReviewsFullTextSearch reviewsFullTextSearch;
 
     private final HtmlRenderer markdownHtmlRenderer;
@@ -40,23 +45,22 @@ public class ReviewsService {
     private final Document.OutputSettings jsoupOutputSettings;
 
     public List<Review> searchReview(String text) {
-        return reviewsFullTextSearch.searchProductNameByKeywordQuery(text);
+        return reviewsFullTextSearch.searchTextInReviewTittleAndContent(text);
     }
 
-    public long addReview(ReviewDto dto, String authorId) {
+    public Review addReview(UploadingReviewDto dto, String authorId) throws NotFoundException, IOException {
 
         assertCategories(dto.getCategories());
 
-        Review newReview = ReviewsMapper.INSTANCE.reviewDtoToReview(dto);
+        Review newReview = ReviewsMapper.INSTANCE.uploadingReviewDtoToReview(dto);
 
-        newReview.setAuthor(userService.findById(Long.parseLong(authorId)));
-        newReview.setTags(tagsService.addTags(newReview.getTags()));
-        newReview.setContentInHtml(mdToHtml(newReview.getContentInMd()));
+        setReviewFields(newReview, Long.parseLong(authorId), dto.getImages());
 
-        return reviewsRepository.save(newReview).getId();
+        return reviewsRepository.save(newReview);
     }
 
-    public long updateReview(ReviewDto dto, Long reviewId, String authorId) throws NotFoundException {
+    public Review updateReview(UploadingReviewDto dto, Long reviewId, String authorId
+    ) throws NotFoundException, IOException {
 
         if (!dto.getId().equals(reviewId))
             throw new IllegalArgumentException("Id from url isn`t equal to review id");
@@ -65,7 +69,20 @@ public class ReviewsService {
 
         assertUpdatingReviewData(updatingReview, dto, authorId);
 
-        return reviewsRepository.save(updateReviewData(updatingReview, dto)).getId();
+        return reviewsRepository.save(updateReviewData(updatingReview, dto));
+    }
+
+    public long deleteReview(Long reviewId, String authorId) throws NotFoundException {
+
+        Review deletingReview = getReviewByIdStrict(reviewId);
+
+        if (!deletingReview.getAuthor().getId().equals(Long.parseLong(authorId))) {
+            throw new IllegalArgumentException("You can delete only your reviews");
+        }
+
+        reviewsRepository.delete(deletingReview);
+
+        return reviewId;
     }
 
     public Review getReviewByIdStrict(Long id) throws NotFoundException {
@@ -77,35 +94,67 @@ public class ReviewsService {
         return reviewsRepository.findAll();
     }
 
+    private void setReviewContent(Review review) {
+
+        review.setContentInHtml(mdToHtml(review.getContentInMd()));
+
+        review.setPlainTextContent(
+                Jsoup.clean(
+                        review.getContentInHtml(),
+                        "",
+                        Safelist.none(),
+                        jsoupOutputSettings
+                )
+        );
+    }
+
+    private void setReviewFields(Review newReview, Long authorId, Set<MultipartFile> images
+    ) throws NotFoundException, IOException {
+
+        newReview.setAuthor(userService.findById(authorId));
+        newReview.setTags(tagsService.addTags(newReview.getTags()));
+        setReviewContent(newReview);
+
+        if (images != null) setImagesUrls(newReview, images);
+    }
+
+    private void setImagesUrls(Review newReview, Set<MultipartFile> images) throws NotFoundException, IOException {
+        for (MultipartFile image: images) {
+            String imageUrl = photosService.uploadImage(image);
+            newReview.getImagesUrls().add(imageUrl);
+        }
+    }
+
     private String mdToHtml(String md) {
         return cleanHtml(markdownHtmlRenderer.render(markdownParser.parse(md)));
     }
 
     private String cleanHtml(String html) {
         return Jsoup.clean(
-                html, "",
+                html,
+                "",
                 Safelist.basic().addTags("h1", "h2", "h3", "h4", "h5", "h6"),
                 jsoupOutputSettings
         );
     }
 
-    private Review updateReviewData(Review updatingReview, ReviewDto dto) {
-        updatingReview = ReviewsMapper.INSTANCE.reviewDtoToReview(dto);
+    private Review updateReviewData(Review updatingReview, UploadingReviewDto dto
+    ) throws NotFoundException, IOException {
 
         updatingReview.setTags(tagsService.addTags(updatingReview.getTags()));
         updatingReview.setContentInHtml(mdToHtml(dto.getContent()));
 
+        if (dto.getImages() != null) setImagesUrls(updatingReview, dto.getImages());
+
         return updatingReview;
     }
 
-    private void assertUpdatingReviewData(Review updatingReview, ReviewDto dto, String authorId) {
+    private void assertUpdatingReviewData(Review updatingReview, UploadingReviewDto dto, String authorId) {
         assertCategories(dto.getCategories());
 
         if (!updatingReview.getAuthor().getId().equals(Long.parseLong(authorId)))
             throw new IllegalArgumentException("You can change only your reviews");
 
-        if (!UsersMapper.INSTANCE.userToUserDto(updatingReview.getAuthor()).equals(dto.getAuthor()))
-            throw new IllegalArgumentException("Review`s author can`t be changed");
     }
 
     private void assertCategories(List<String> categories) {

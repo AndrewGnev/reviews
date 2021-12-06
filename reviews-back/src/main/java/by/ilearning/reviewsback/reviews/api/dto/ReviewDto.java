@@ -17,4 +17,5 @@ public class ReviewDto {
     Integer likesCount;
     Double usersGradesAvg;
     Set<String> tagsNames;
+    Set<String> imagesUrls;
 }

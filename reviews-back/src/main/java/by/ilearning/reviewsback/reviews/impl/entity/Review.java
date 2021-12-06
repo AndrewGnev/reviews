@@ -12,6 +12,7 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -32,35 +33,43 @@ public class Review {
     @Field
     private String tittle;
 
-    @Field
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "TEXT")
     private String contentInMd;
+
+    @Column(columnDefinition = "TEXT")
+    private String contentInHtml;
 
     @Field
     @Column(columnDefinition = "TEXT")
-    private String contentInHtml;
+    private String plainTextContent;
 
     private int grade;
 
     @ElementCollection
     private Set<String> categories;
 
-    @OneToMany
+    @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE)
     private Set<Like> likes;
 
-    @OneToMany
+    @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE)
     private Set<UsersGrade> usersGrades;
 
     @ManyToMany
-    @JoinTable(name = "review_tag",
-    joinColumns = @JoinColumn(name = "review_id", referencedColumnName = "id"),
-    inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
+    @JoinTable(
+        name = "review_tag",
+        joinColumns = @JoinColumn(name = "review_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id")
+    )
     private Set<Tag> tags;
+
+    @ElementCollection
+    private Set<String> imagesUrls;
 
     public Review(User author,
                   String tittle,
                   String contentInMd,
                   String contentInHtml,
+                  String plainTextContent,
                   int grade,
                   Set<String> categories,
                   Set<Tag> tags
@@ -70,11 +79,13 @@ public class Review {
                 tittle,
                 contentInMd,
                 contentInHtml,
+                plainTextContent,
                 grade,
                 categories,
                 null,
                 null,
-                tags
+                tags,
+                new HashSet<>()
         );
     }
 }

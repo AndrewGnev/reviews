@@ -18,7 +18,7 @@ public class LikeService {
     private final ReviewsService reviewsService;
     private final UserService userService;
 
-    public void like(Long reviewId, Long likerId) throws NotFoundException {
+    public Review like(Long reviewId, Long likerId) throws NotFoundException {
 
         Review review = reviewsService.getReviewByIdStrict(reviewId);
         User liker = userService.findByIdStrict(likerId);
@@ -29,5 +29,7 @@ public class LikeService {
         } else {
             likeRepository.delete(like);
         }
+
+        return reviewsService.getReviewByIdStrict(reviewId);
     }
 }

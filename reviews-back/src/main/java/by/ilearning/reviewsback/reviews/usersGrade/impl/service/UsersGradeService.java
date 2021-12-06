@@ -20,18 +20,15 @@ public class UsersGradeService {
     private final ReviewsService reviewsService;
     private final UserService userService;
 
-    public long addGrade(int grade, Long reviewId, Long graderId) throws NotFoundException, IllegalArgumentException {
+    public Review addGrade(int grade, Long reviewId, Long graderId) throws NotFoundException, IllegalArgumentException {
+
         if (grade > GRADE_MAXIMUM) throw new IllegalArgumentException("Provided grade is bigger than maximum");
 
-        User grader = userService.findByIdStrict(graderId);
-        Review review = reviewsService.getReviewByIdStrict(reviewId);
+        UsersGrade dbGrade = loadGrade(reviewId, graderId, grade);
+        dbGrade.setGrade(grade);
+        usersGradeRepository.save(dbGrade);
 
-//        reviewsService.updateReviewUsersGrade(
-//                review,
-//                (double) (sumReviewsUsersGrades(review) + grade) / (countReviewsUsersGrades(review) + 1)
-//        );
-
-        return usersGradeRepository.save(new UsersGrade(grade, review, grader)).getId();
+        return reviewsService.getReviewByIdStrict(reviewId);
     }
 
     public Long countReviewsUsersGrades(Review review) {
@@ -40,5 +37,17 @@ public class UsersGradeService {
 
     public Long sumReviewsUsersGrades(Review review) {
         return usersGradeRepository.sumUsersGradesByReview(review);
+    }
+
+    private UsersGrade loadGrade(Long reviewId, Long graderId, int grade) throws NotFoundException {
+
+        User grader = userService.findByIdStrict(graderId);
+        Review review = reviewsService.getReviewByIdStrict(reviewId);
+
+        UsersGrade dbGrade = usersGradeRepository.findByGraderAndReview(grader, review);
+
+        return (dbGrade != null)
+                ? dbGrade
+                : new UsersGrade(grade, review, grader);
     }
 }

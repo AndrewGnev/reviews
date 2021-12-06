@@ -11,7 +11,6 @@ export interface RedirectingPageProps {
 export const RedirectingPage: React.FC<RedirectingPageProps> = ({ classname }) => {
     const { setToken } = useToken();
     const location = useLocation();
-    const history = useHistory();
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);

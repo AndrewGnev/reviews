@@ -23,7 +23,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ classname }) => {
             <Page className={cnSignInPage(null, [classname])} title="Sign in">
                 <Container>
                     <Row className="d-flex align-items-center">
-                        <Col xs={{ span: 4, offset: 3 }}>
+                        <Col md={{ span: 4, offset: 4 }}>
                             <Card>
                                 <Card.Header>Sign in with</Card.Header>
                                 <Card.Text className="d-grid gap-2 p-2">

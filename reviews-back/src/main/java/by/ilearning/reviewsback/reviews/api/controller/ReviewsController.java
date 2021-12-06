@@ -84,7 +84,8 @@ public class ReviewsController {
 
     @GetMapping("search")
     public List<ReviewDto> searchReviews(@RequestParam("text") String text) {
-        return reviewsService.searchReview(text).stream().map(ReviewsMapper.INSTANCE::reviewToReviewDto)
+        return reviewsService.searchReview(text)
+                .stream().map(ReviewsMapper.INSTANCE::reviewToReviewDto)
                 .collect(Collectors.toList());
     }
 }

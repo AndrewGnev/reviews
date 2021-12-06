@@ -1,7 +1,23 @@
 
 .MainPage {
-    display: flex;
-    min-height: 100vh;
-    height: 100%;
-    align-items: center;
+    /*display: flex;*/
+    /*min-height: 100vh;*/
+    /*height: 100%;*/
+    /*align-items: center;*/
+}
+
+.MainPage-ReviewTitleCol {
+    width: 65vw;
+}
+
+.MainPage-ReviewLikesCol {
+    width: 10vw;
+}
+
+.MainPage-ReviewGradesCol {
+    width: 15vw;
+}
+
+.MainPage-ReviewOpenCol {
+    width: 10vw;
 }

@@ -1,0 +1,8 @@
+
+.ReviewPageRead-LikeButton {
+    vertical-align: text-bottom;
+}
+
+.ReviewPageRead-LikeButton_active {
+    cursor: pointer;
+}

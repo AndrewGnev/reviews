@@ -59,8 +59,8 @@ public class ReviewsService {
         return reviewsRepository.save(newReview);
     }
 
-    public Review updateReview(UploadingReviewDto dto, Long reviewId, String authorId
-    ) throws NotFoundException, IOException {
+    public Review updateReview(UploadingReviewDto dto, Long reviewId, String authorId)
+            throws NotFoundException, IOException {
 
         if (!dto.getId().equals(reviewId))
             throw new IllegalArgumentException("Id from url isn`t equal to review id");
@@ -138,11 +138,14 @@ public class ReviewsService {
         );
     }
 
-    private Review updateReviewData(Review updatingReview, UploadingReviewDto dto
-    ) throws NotFoundException, IOException {
+    private Review updateReviewData(Review updatingReview, UploadingReviewDto dto)
+            throws NotFoundException, IOException {
 
+        updatingReview.setGrade(dto.getGrade());
         updatingReview.setTags(tagsService.addTags(updatingReview.getTags()));
-        updatingReview.setContentInHtml(mdToHtml(dto.getContent()));
+
+        updatingReview.setContentInMd(dto.getContent());
+        setReviewContent(updatingReview);
 
         if (dto.getImages() != null) setImagesUrls(updatingReview, dto.getImages());
 

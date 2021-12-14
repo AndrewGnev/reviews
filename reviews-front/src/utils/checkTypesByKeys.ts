@@ -1,6 +1,6 @@
 
 export function checkTypesByKeys<K extends Record<string, string | string[] | undefined>>(object: object, keys: K)
-    : object is { [K1 in keyof K]: unknown } {
+    : object is { [K1 in keyof K]: unknown} {
 
     for (let key of Object.keys(keys)) {
         if (!(key in object)) {

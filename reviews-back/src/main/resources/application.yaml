@@ -27,6 +27,7 @@ spring:
     generate-ddl: true
     properties:
       hibernate:
+        ddl-auto: create
         show-sql: true
         format-sql: true
         search:

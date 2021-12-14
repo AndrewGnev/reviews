@@ -3,7 +3,7 @@ import { useAuthenticatedMutation } from '../useAuthenticatedMutation';
 import { deleteReview } from '../../api/review';
 import { useCallback } from 'react';
 import { QueryKey } from '../../queryClient';
-import { User } from '../../api/data/User';
+import { CacheEvent, updateMeCache, updateReviewsCache } from '../../utils/updateCache';
 
 export const useDeleteReview = (): (reviewId: number) => void => {
     const queryClient = useQueryClient();
@@ -13,14 +13,11 @@ export const useDeleteReview = (): (reviewId: number) => void => {
         const result: number | undefined = await authenticatedDeleteReview(reviewId);
 
         if (result !== undefined) {
-            const me: User | undefined = queryClient.getQueryData(QueryKey.ME);
+            updateReviewsCache(queryClient, null, reviewId, CacheEvent.DELETE);
+            updateMeCache(queryClient, null, reviewId, CacheEvent.DELETE);
 
-            if (me) {
-                queryClient.setQueryData(QueryKey.ME, {
-                    ...me,
-                    reviews: me.reviews.filter(r => r.id !== result),
-                });
-            }
+            queryClient.removeQueries([QueryKey.REVIEW, reviewId, 'read']);
+            queryClient.removeQueries([QueryKey.REVIEW, reviewId, 'edit']);
         }
 
     }, [queryClient, authenticatedDeleteReview]);

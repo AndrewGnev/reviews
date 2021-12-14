@@ -10,9 +10,8 @@ export interface useGetReviewResult {
 
 export const useReview = (reviewId: string, mode: string): useGetReviewResult => {
 
-    const {data: review, isLoading} = useAuthenticatedQuery([QueryKey.REVIEW, reviewId, mode], getReview(+reviewId, mode === 'edit'), {
-        staleTime: Infinity,
-    })
+    const {data: review, isLoading} = useAuthenticatedQuery([QueryKey.REVIEW, Number(reviewId), mode],
+        getReview(Number(reviewId), mode === 'edit'), { staleTime: Infinity, } );
 
-    return { review, isLoading }
+    return { review, isLoading };
 }

@@ -3,8 +3,8 @@ import { useAuthenticatedMutation } from '../useAuthenticatedMutation';
 import { createReview } from '../../api/review';
 import { useCallback } from 'react';
 import { QueryKey } from '../../queryClient';
-import { User } from '../../api/data/User';
 import { NewReview } from '../../api/data/Review';
+import { CacheEvent, updateMeCache, updateReviewsCache } from '../../utils/updateCache';
 
 export const useCreateReview = () => {
     const queryClient = useQueryClient();
@@ -14,16 +14,10 @@ export const useCreateReview = () => {
         const result = await authenticatedCreateReview(review);
 
         if (result !== undefined) {
-            queryClient.setQueryData(QueryKey.REVIEW, result);
+            queryClient.setQueryData([QueryKey.REVIEW, result.id, 'read'], result);
 
-            const me: User | undefined = queryClient.getQueryData(QueryKey.ME);
-
-            if (me) {
-                queryClient.setQueryData(QueryKey.ME, {
-                    ...me,
-                    reviews: [...me.reviews, result],
-                });
-            }
+            updateReviewsCache(queryClient, result, null, CacheEvent.ADD);
+            updateMeCache(queryClient, result, null, CacheEvent.ADD);
         }
 
         return result;

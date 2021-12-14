@@ -53,7 +53,7 @@ export const ReviewPageCreate: React.FC<ReviewPageCreateProps> = ({ className })
 
     return (
         <AuthenticatedGuard redirectUrl={"/signIn"}>
-            <Page className={cnReviewPage(null, [className])} title={`Review - edit`}>
+            <Page className={cnReviewPage(null, [className])} title={`Review - create`}>
                 <Container>
                     <Form onSubmit={onSubmit}>
                         <Form.Group className="mb-3" controlId="tittle">

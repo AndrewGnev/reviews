@@ -1,11 +1,10 @@
 import React, { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { cn } from '@bem-react/classname';
 import { Button, Carousel, Col, Container, Row } from 'react-bootstrap';
 import { AiFillStar, AiOutlineLike, AiOutlineStar, ImStarHalf } from 'react-icons/all';
 
 import { Page } from '../../components/Page';
-import { AuthenticatedGuard } from '../../components/guards/AuthenticatedGuard';
 import { useReview } from '../../hooks/queries/useReview';
 import { useMe } from '../../hooks/queries/useMe';
 import { useLike } from '../../hooks/queries/useLike';
@@ -30,15 +29,25 @@ export const ReviewPageRead: React.FC<ReviewPageReadProps> = ({ className }) => 
     const { me } = useMe();
     const { review } = useReview(reviewId, 'read');
 
+    const history = useHistory();
+
     const likeReview = useLike();
     const onLikeButtonClick = useCallback(async (reviewId) => {
-        await likeReview(reviewId);
-    },[likeReview])
+        if (!me) {
+            history.push("/signIn")
+        } else {
+            await likeReview(reviewId);
+        }
+    },[history, likeReview, me])
 
     const gradeReview = useGrade();
     const onGradeButtonClick = useCallback(async (reviewId, grade) => {
-        await gradeReview(reviewId, grade);
-    }, [gradeReview]);
+        if (!me) {
+            history.push("/signIn")
+        } else {
+            await gradeReview(reviewId, grade);
+        }
+    }, [gradeReview, history, me]);
 
 
     return (
